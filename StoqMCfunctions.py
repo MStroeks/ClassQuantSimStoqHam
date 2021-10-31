@@ -1,0 +1,45 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def propagation_plot(measpoints, tau_increment, numsamples, gfulldata, ftaudata, qpedata, qpenoisydata, M):
+    epsilon = np.sqrt(10/numsamples)
+    fig, axs = plt.subplots(1,3)
+    plt.subplots_adjust(wspace = 0.35)
+    fig.set_size_inches(21, 7.0)
+    axs[0].plot(np.arange(measpoints)*tau_increment, gfulldata[0,:], 'k', label='Exact $\\langle \\Phi| e^{-\\tau H} |\\Phi \\rangle$')
+    axs[0].set_xlabel('$\\tau$', fontsize = 23)
+    axs[0].set_ylabel('$\\langle \\Phi| e^{-\\tau H} |\\Phi \\rangle$', fontsize = 20, labelpad = 7)
+    axs[0].set_title('$\mathbf{(a)}$ Monte Carlo Scheme.', fontsize = 18)
+    axs[0].fill_between(np.arange(measpoints)*tau_increment,gfulldata[0,:]-epsilon,gfulldata[0,:]+epsilon,color='lightgrey',label='90% confidence bounds') # Confidence bounds
+    axs[0].set_ylim(0,1.05)
+    axs[0].set_xlim(-0.01,(measpoints-1)*tau_increment+0.01)
+    axs[0].plot(np.arange(measpoints)*tau_increment,ftaudata[0,:],'o',color='firebrick', markersize=5.5,label = 'Estimates for $M=$'+str(M))
+    axs[0].legend(fontsize=10,prop={'size': 17})
+    axs[0].grid(alpha = 0.4)
+    axs[0].xaxis.set_tick_params(labelsize=17)
+    axs[0].yaxis.set_tick_params(labelsize=17)
+    axs[1].plot(np.arange(measpoints)*tau_increment, np.real(qpedata[0,:]), 'k', label='Exact $Re(\\langle \\Phi| e^{-it H} |\\Phi \\rangle)$')
+    axs[1].set_xlabel('$t$', fontsize = 23)
+    axs[1].set_ylabel('$Re(\\langle \\Phi| e^{-it H} |\\Phi \\rangle)$', fontsize = 20, labelpad = 7)
+    axs[1].fill_between(np.arange(measpoints)*tau_increment,np.real(qpedata[0,:])-epsilon,np.real(qpedata[0,:])+epsilon,color='lightgrey',label='90% confidence bounds') # Confidence bounds
+    axs[1].set_title('$\mathbf{(b)}$ Real Part QPE Signal.', fontsize = 18)
+    axs[1].set_ylim(-1.05,1.05)
+    axs[1].set_xlim(-0.01,(measpoints-1)*tau_increment+0.01)
+    axs[1].plot(np.arange(measpoints)*tau_increment,np.real(qpenoisydata[0,:]),'o',color='royalblue', markersize=5.5,label = 'Estimates for $M=$'+str(M))
+    axs[1].legend(fontsize=10,prop={'size': 17})
+    axs[1].grid(alpha = 0.4)
+    axs[1].xaxis.set_tick_params(labelsize=17)
+    axs[1].yaxis.set_tick_params(labelsize=17)
+    axs[2].plot(np.arange(measpoints)*tau_increment, np.imag(qpedata[0,:]), 'k', label='Exact $Im(\\langle \\Phi| e^{-it H} |\\Phi \\rangle)$')
+    axs[2].set_xlabel('$t$', fontsize = 23)
+    axs[2].set_ylabel('$Im(\\langle \\Phi| e^{-it H} |\\Phi \\rangle)$', fontsize = 20, labelpad = 7)
+    axs[2].fill_between(np.arange(measpoints)*tau_increment,np.imag(qpedata[0,:])-epsilon,np.imag(qpedata[0,:])+epsilon,color='lightgrey',label='90% confidence bounds') # Confidence bounds
+    axs[2].set_title('$\mathbf{(c)}$ Imaginary Part QPE Signal.', fontsize = 18)
+    axs[2].set_ylim(-1.05,1.05)
+    axs[2].set_xlim(-0.01,(measpoints-1)*tau_increment+0.01)
+    axs[2].plot(np.arange(measpoints)*tau_increment,np.imag(qpenoisydata[0,:]),'o',color='seagreen', markersize=5.5,label = 'Estimates for $M=$'+str(M))
+    axs[2].legend(fontsize=10,prop={'size': 17})
+    axs[2].grid(alpha = 0.4)
+    axs[2].xaxis.set_tick_params(labelsize=17)
+    axs[2].yaxis.set_tick_params(labelsize=17)
+    

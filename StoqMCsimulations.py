@@ -52,7 +52,7 @@ def GtrotSim(k,N,M,Jx,Jy,Jz,g,tau):
     Gsingle = expm(-tau*subHiRescaled/M)
     Gtrot = np.repeat(Gsingle[:,:,np.newaxis], M*N, axis = 2)
     Gtrot[np.abs(Gtrot) < 10**(-10)] = 0
-    
+
     return Gtrot
 
 '''
@@ -114,8 +114,11 @@ eme and sets up the stochastic process to estimate F(tau). It outputs
 the estimate of F(tau). 
 ----------------------------------------------------------------------
 '''
-def PiandFTau(maxeigval,poseigvec,connectedstates,numsets,M,N,k,Gtrot,numsamples,phi_coefficients):
+def PiandFTau(maxeigval,poseigvec,connectedstates,numsets,M,N,k,Gtrot,numsamples,phi_coefficients,MOMnumgroups):
     ftau = 0
+    ftauMOM = 0
+    ftausamples = np.zeros(numsamples)
+    ftausubaverages = np.zeros(MOMnumgroups)
     for samples in range(numsamples):
         zeroth_state = (np.where(np.cumsum(phi_coefficients**2) > np.random.rand(1))[0])[0]
         x0 = np.reshape(np.flip(np.unpackbits(zeroth_state.astype(np.uint8),axis=0),axis=0)[0:N], (N,1))
@@ -171,7 +174,17 @@ def PiandFTau(maxeigval,poseigvec,connectedstates,numsets,M,N,k,Gtrot,numsamples
         estimatorforF = phiL/phi0*R
         ftau = ftau + estimatorforF/numsamples
         
-    return ftau
+        ftausamples[samples] = estimatorforF
+    
+    # MOM estimator
+    for i in range(MOMnumgroups):
+        ftausubaverages[i] = np.mean(ftausamples[i*np.int(numsamples/MOMnumgroups):(i+1)*np.int(numsamples/MOMnumgroups)])
+    if np.mod(MOMnumgroups,2) == 0:
+        ftauMOM = np.sort(ftausubaverages)[np.int(MOMnumgroups/2)-1]
+    if np.mod(MOMnumgroups,2) == 1:
+        ftauMOM = np.sort(ftausubaverages)[np.int(MOMnumgroups/2-1/2)]
+    
+    return ftau, ftauMOM
 
 '''
 -----------------------------------------------------------------------
@@ -184,8 +197,11 @@ even system size) first-order Trotterization scheme and sets up the s-
 tochastic process to estimate F(tau). It outputs the estimate of F(tau). 
 -----------------------------------------------------------------------
 '''
-def PiandFTauCB(maxeigval,poseigvec,connectedstates,numsets,M,N,k,Gtrot,numsamples,phi_coefficients):
+def PiandFTauCB(maxeigval,poseigvec,connectedstates,numsets,M,N,k,Gtrot,numsamples,phi_coefficients,MOMnumgroups):
     ftau = 0
+    ftauMOM = 0
+    ftausamples = np.zeros(numsamples)
+    ftausubaverages = np.zeros(MOMnumgroups)
     for samples in range(numsamples):
         zeroth_state = (np.where(np.cumsum(phi_coefficients**2) > np.random.rand(1))[0])[0]
         x0 = np.reshape(np.flip(np.unpackbits(zeroth_state.astype(np.uint8),axis=0),axis=0)[0:N], (N,1))
@@ -256,7 +272,17 @@ def PiandFTauCB(maxeigval,poseigvec,connectedstates,numsets,M,N,k,Gtrot,numsampl
         estimatorforF = phiL/phi0*R
         ftau = ftau + estimatorforF/numsamples
         
-    return ftau
+        ftausamples[samples] = estimatorforF
+    
+    # MOM estimator
+    for i in range(MOMnumgroups):
+        ftausubaverages[i] = np.mean(ftausamples[i*np.int(numsamples/MOMnumgroups):(i+1)*np.int(numsamples/MOMnumgroups)])
+    if np.mod(MOMnumgroups,2) == 0:
+        ftauMOM = np.sort(ftausubaverages)[np.int(MOMnumgroups/2)-1]
+    if np.mod(MOMnumgroups,2) == 1:
+        ftauMOM = np.sort(ftausubaverages)[np.int(MOMnumgroups/2-1/2)]
+
+    return ftau, ftauMOM
 
 '''
 ----------------------------------------------------------------------
@@ -432,3 +458,39 @@ def MatrixPencilMethod(signal,measpoints,L,truncation_factor):
     I = np.matmul(np.linalg.pinv(Y1_truncatedSVD),Y1_truncatedSVD) # Check
     
     return generalizedeigvals, I
+
+'''
+----------------------------------------------------------------------
+'ESPRIT' takes as input a (noisy) signal, measpoints, the 
+pencil parameter L and the truncation factor. It outputs the estimates
+of the parameters z_{j}.
+----------------------------------------------------------------------
+'''
+def ESPRIT(signal,measpoints,L,truncation_factor):
+    
+    Y = np.zeros((L+1, measpoints-L), dtype = np.complex)
+    for i in range(L+1):
+        Y[i,:] = signal[i:measpoints-L + i]
+    
+    # SVD of Hankel matrix (Y) --> always in descending order of singular values
+    U, Sigma, V = np.linalg.svd(Y)
+    
+    # Locating set of largest singular values
+    relevantargs = np.argwhere(Sigma/np.max(Sigma) > truncation_factor)
+    
+    # Cleaning procedure
+    #Sigma = Sigma[Sigma/np.max(Sigma) > truncation_factor]
+    #Sigma_matrix = np.diag(Sigma)
+    U_clean = np.take(U, relevantargs, axis = 1)
+    
+    # Take U sub-matrices
+    U_0 = np.reshape(U_clean[0:L,:], (L,np.size(relevantargs)))
+    U_1 = np.reshape(U_clean[1:L+1,:], (L,np.size(relevantargs)))
+    
+    # Compute Psi and its eigenvalues
+    Psi = np.matmul(np.linalg.pinv(U_0),U_1)
+    eigvals = np.linalg.eig(Psi)[0]
+    
+    I = np.matmul(np.linalg.pinv(U_0),U_0) # Check
+    
+    return eigvals, I

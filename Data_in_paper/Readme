@@ -5,7 +5,8 @@ Figure-3-folder: Contains the data of the signals presented in Figure 3.
 Figure-4-folder: Contains the data of the signals of which the spectral estimates are presented in Figure 4. The StoqMCsimulations file contains functions
 exctract the spectral estimates from the signals. The 'ftaudata' and 'gfulldata' files contain resp. the noisy and noiseless versions of the imaginary-time
 signals, the 'qpenoisydata' and 'qpedata' contain resp. the noisy and noiseless versions of the real-time signals. The number in the filename is associated
-with a value of 'g' in the spectrum. 
+with a value of 'g' in the spectrum. The '...datag4sigmaK' files contain the signals from which the spectral estimates displayed in the lower four plots
+in Figure 4 are obtained.
 
 Figure-A1-folder: Contains the data presented in Figure A1.
 

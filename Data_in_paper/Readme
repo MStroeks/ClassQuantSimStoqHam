@@ -1,6 +1,7 @@
 Data Folders:
 
-Figure-3-folder: Contains the data of the signals presented in Figure 3.
+Figure-3-folder: Contains the data of the signals presented in Figure 3. The '...plusprop' files contain the signals in the upper three plots in Figure 3.
+The '...data7' files contain the signals in the lower three plots in Figure 3.
 
 Figure-4-folder: Contains the data of the signals of which the spectral estimates are presented in Figure 4. The StoqMCsimulations file contains functions
 exctract the spectral estimates from the signals. The 'ftaudata' and 'gfulldata' files contain resp. the noisy and noiseless versions of the imaginary-time
